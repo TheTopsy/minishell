@@ -1,15 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-
-typedef struct s_token
-{
-	char *token;
-	char *label;
-	struct s_token *next;
-	struct s_token *prev;
-} t_token;
+#include "minishell.h"
 
 t_token	*create_token(char *token)
 {
