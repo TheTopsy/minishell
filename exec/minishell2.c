@@ -1,4 +1,4 @@
-#include "minishell.h"
+#include "../minishell.h"
 
 void echo_file(t_token *head, char *s, int flag)
 {
