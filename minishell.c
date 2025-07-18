@@ -42,13 +42,19 @@ int	count_input(char *input)
 {
 	int i;
 	int k;
+	int l;
 	char countspace;
-
+	
 	countspace = 0;
 	i = 0;
 	k = 1;
+	l = 0;
 	while(input[i])
 	{
+		if(input[i] == '\"')
+		{
+			l++;
+		}
 		if(input[i] == ' ' && countspace)
 		{
 			k++;
@@ -64,7 +70,8 @@ int	count_input(char *input)
 	}
 	if(i == 0 || input[--i] == ' ')
 		k--;
-	return k;
+	l /= 2;
+	return k + l;
 }
 
 int	ft_strlen(char *str)
@@ -77,6 +84,11 @@ int	ft_strlen(char *str)
 	return i;
 }
 
+void do_absolutely_nothing()
+{
+	//nothing
+}
+
 t_token **split_input(char *input)
 {
 	int i;
@@ -85,9 +97,10 @@ t_token **split_input(char *input)
 	char *tmp;
 	t_token *head;
 	t_token **heads;
+
 	i = 0;
-	k = count_input(input);
 	j = 0;
+	k = count_input(input);
 	head = NULL;
 	while(k--)
 	{
@@ -96,12 +109,137 @@ t_token **split_input(char *input)
 			i++;
 		j = 0;
 		while(input[i] && input[i] != ' ')
-			tmp[j++] = input[i++];
+		{
+			if(input[i] == '\'')
+                        {
+                                tmp[j++] = input[i++];
+                                if(input[i] == '\'')
+                                {
+                                        i++;
+                                        break;
+                                }
+                                while(input[i] && input[i] != '\'')
+                                        tmp[j++] = input[i++];
+                                if(input[i] && input[i] == '\'')
+                                        tmp[j] = '\'';
+                                if(input[++i] && input[i] == '\'')
+                                {
+                                        k++;
+                                        j++;
+                                        break;
+                                }
+                                if(input[i] && input[i] == ' ')
+                                        tmp[++j] = ' ';
+                                else
+                                        i--;
+                                if(input[++i] && input[i] != ' ' && input[i] != '\'')
+                                {
+                                        j++;
+                                        break;
+                                }
+                                else
+                                        i--;
+                                if(tmp[j] == ' ')
+                                {
+                                        j++;
+                                }
+                        }
+			if(input[i] == '\"')
+			{
+				tmp[j++] = input[i++];
+				if(input[i] == '\"')
+				{
+					i++;
+					break;
+				}
+				while(input[i] && input[i] != '\"')
+					tmp[j++] = input[i++];
+				if(input[i] && input[i] == '\"')
+					tmp[j] = '\"';
+				if(input[++i] && input[i] == '\"')
+                                {
+					k++;
+					j++;
+					break;
+                                }
+				if(input[i] && input[i] == ' ')
+					tmp[++j] = ' ';
+				else
+					i--;
+				if(input[++i] && input[i] != ' ' && input[i] != '\"')
+				{
+					j++;
+					break;
+				}
+				else
+					i--;
+				if(tmp[j] == ' ')
+				{
+					j++;
+				}
+			}
+			else
+			{
+				tmp[j++] = input[i++];
+				if(input[i] && input[i] == '\"')
+				{
+					k++;
+					break;
+				}
+			}
+		}
 		tmp[j] = '\0';
-		insert_token(&head, create_token(tmp));
+		if((tmp[0] == '\"' && tmp[1] == '\0') || (tmp[0] == '\'' && tmp[1] == '\0'))
+			do_absolutely_nothing();	
+		else
+			insert_token(&head, create_token(tmp));
 	}
 	heads = &head;
 	return heads;
+}
+
+int unclosed_quotes(char *input)
+{
+	int i;
+	int d_count;
+	int s_count;
+	
+	s_count = 0;
+	d_count = 0;
+	i = 0;
+	while(input[i])
+	{
+		if(input[i] == '\"')
+		{
+			i++;
+			d_count++;
+			while(input[i] && input[i] != '\"')
+				i++;
+			if(input[i])
+				d_count++;
+			else
+				return (0);
+		}
+		if(input[i] == '\'')
+                {
+			i++;
+                        s_count++;
+                        while(input[i] && input[i] != '\'')
+                                i++;
+                        if(input[i])
+			       	s_count++;
+                        else
+                                return (0);
+                }
+		i++;
+	}
+	printf("s = %d  d = %d\n", s_count, d_count);
+	if(s_count || d_count)
+	{
+		if(((s_count % 2) != 0) || ((d_count % 2) != 0))
+			return (0);
+	}
+	return (1);
 }
 
 int main()
@@ -112,10 +250,20 @@ int main()
 	while(1)
 	{
 		input = readline("% ");
+		add_history(input);
 		if(*input)
 		{
+			if(!unclosed_quotes(input))
+			{
+				printf("unclosed quotes\n");
+				return 0;
+			}
 			head = split_input(input);
-			break;
+			printf("%s -> ", (*head)->token);
+			printf("%s -> ", (*head)->next->token);
+			printf("%s\n", (*head)->next->next->token);
+			//break;
 		}
 	}
+	//printf("%s\n", (*head)->next->token);
 }
