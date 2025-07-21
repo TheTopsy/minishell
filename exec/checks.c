@@ -1,10 +1,27 @@
 #include "../minishell.h"
 
+int redirect_type(t_token *head)
+{
+	if (head->token[0] == '>')
+	{
+		if (head->token[1] == '>')
+			return 2;
+		return 1;
+	}
+	else if (head->token[0] == '<')
+	{
+		if (head->token[1] == '<')
+			return 4;
+		return 3;
+	}
+	return 0;
+}
+
 t_token *check_redirect(t_token *head)
 {
 	while(head)
 	{
-		if (head->token[0] == '>')
+		if (redirect_type(head) > 0)
 		{
 			return head;
 		}
@@ -25,7 +42,7 @@ int count_redirect(t_token *head)
 	return i;
 }
 
-int check_nl(t_token *head)
+int check_nl(t_token *head) //handle "echo -n -n zbi"
 {
 	int i = 2, flag = 0;
 	if (head->token[0] != '-' && head->token[1] != 'n')

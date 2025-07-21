@@ -1,17 +1,32 @@
 #include "../minishell.h"
 
-void echo_file(t_token *head, char *s, int flag)
+void append_file(t_token *head, char *s, int flag)  // append ">>"
+{
+	t_token *tmp;
+	int fd;
+                tmp = check_redirect(head);
+		if (tmp)
+		{
+			fd = open(tmp->next->token, O_CREAT | O_RDWR | O_APPEND, 0644);
+			ft_putstr_fd(s,fd);
+			if (!flag)
+                        	ft_putstr_fd("\n",fd);
+                }
+		head = head->next;
+}
+
+void echo_file(t_token *head, char *s, int flag)  // input '>'
 {
 	t_token *tmp;
 	int fd;
 	while (head)
         {
                 tmp = check_redirect(head);
-                if (tmp)
-                {
-                        fd = open(tmp->next->token, O_CREAT | O_RDWR | O_TRUNC, 0644);
-                                ft_putstr_fd(s,fd);
-                                head = head->next;
+		if (tmp)
+		{
+			fd = open(tmp->next->token, O_CREAT | O_RDWR | O_TRUNC, 0644);
+			ft_putstr_fd(s,fd);
+			head = head->next;
 			if (!flag)
                         	ft_putstr_fd("\n",fd);
                 }
@@ -19,32 +34,71 @@ void echo_file(t_token *head, char *s, int flag)
 	}
 }
 
+int token_len(t_token *head)
+{
+	int i = 0, ttl = 0;
+	while(head && head->token[0] != '>' && head->token[0] != '<' )
+	{
+		while (head->token[i])
+			i++;
+		head = head->next;
+		ttl += i +1;
+	}
+	return ttl;
+}
+
+int redirect_occur(t_token *head, t_token *word,char *s,int nl_flag)
+{
+	t_token *tmp = head;
+
+        if (word && (redirect_type(word) == 1))
+        {
+                while (tmp != word)
+                {
+                        ft_strcat(s, tmp->token);
+                        if (tmp->next != word)
+                                ft_strcat(s," ");
+                        tmp = tmp->next;
+                }
+                echo_file(head,s,nl_flag);
+		return 1;
+        }
+        else if (word && (redirect_type(word) == 2))
+        {
+                while (tmp != word)
+                {
+                        ft_strcat(s, tmp->token);
+                        if (tmp->next != word)
+                                ft_strcat(s," ");
+                        tmp = tmp->next;
+                }
+                append_file(head,s,nl_flag);
+		return 1;
+        }	
+	return 0;
+}
+
 void echo(t_token *head)
 {
-	t_token *last;
-	int count;
-	char s[99999];
+	if (!head)
+	{
+		printf("invalid\n");
+		return;
+	}
+	//	int count;
+	char *s = malloc(token_len(head));
+	s[0] = '\0';
 	t_token *word;
 	int nl_flag;
-	t_token *tmp;
 
 	nl_flag = check_nl(head);
-	count = count_redirect(head);
-	last = lst_last(head);
+//	count = count_redirect(head);
 	word = check_redirect(head);
 	if (nl_flag)
 		head = head->next;
-	tmp = head;
 	if (word)
 	{
-		while (tmp != word)
-		{
-			ft_strcat(s, tmp->token);
-			if (tmp->next != word)
-				ft_strcat(s," ");
-			tmp = tmp->next;
-		}
-		echo_file(head,s,nl_flag);
+		redirect_occur(head,word,s,nl_flag);
 	}
 	else
 	{
@@ -59,6 +113,49 @@ void echo(t_token *head)
 		if (nl_flag == 0)	
     			putchar('\n');
     	}
+	free(s);
+}
+void pwd(t_token *head)
+{
+	char *s;
+       	s = getcwd(NULL,0);
+	t_token *word = check_redirect(head);
+	if (word)
+	{
+		if (redirect_type(word) == 1)
+			echo_file(head,s,0);
+		else if (redirect_type(word) == 2)
+			append_file(head,s,0);
+	}
+	else
+		printf("%s\n",s);
+}
+
+void cd(t_token *head)
+{
+	if(chdir(head->token))
+	{
+		printf(RED"Invalid director or path isn't relative or absolute\n"RESET);
+	}
+
+}
+
+void check_command(t_token *head)
+{
+	if (!strcmp(head->token, "echo")) //do strcmp ra makinach f libft
+	{
+		head = head->next;
+		echo(head);
+	}	
+	else if (!strcmp(head->token, "pwd"))
+		pwd(head);
+	else if (!strcmp(head->token, "cd"))
+	{
+		head = head->next;
+		cd(head);
+	}
+	else
+		printf("invalid command\n");
 }
 /*
 int main(void)
