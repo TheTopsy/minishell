@@ -115,10 +115,10 @@ void echo(t_token *head)
     	}
 	free(s);
 }
-void pwd(t_token *head)
+void pwd(t_token *head) // should accept no arguments
 {
 	char *s;
-       	s = getcwd(NULL,0);
+       	s = getcwd(NULL,0); // protect this
 	t_token *word = check_redirect(head);
 	if (word)
 	{
@@ -133,13 +133,62 @@ void pwd(t_token *head)
 
 void cd(t_token *head)
 {
-	if(chdir(head->token))
+	if (head->next == NULL)
 	{
-		printf(RED"Invalid director or path isn't relative or absolute\n"RESET);
+		char *user = getenv("USER"); //protect this malloc
+		char *path = malloc(7 + ft_strlen(user)); // this too
+		ft_strcpy(path,"/home/");
+		strcat(path,user); //do ft_strcat
+		chdir(path);
 	}
-
+	else
+		head = head->next;
+	if(chdir(head->token))
+		printf(RED"Invalid director or path isn't relative or absolute\n"RESET);
 }
 
+int executable(t_token *head)
+{
+	char *prog_name = malloc(ft_strlen(head->token) * 999);	// protecc
+	int i = 0, j = 1;
+	char **path = ft_split(getenv("PATH"),':');
+	char **args;
+       	args = malloc (token_len(head));
+	t_token *tmp = head;
+	while(tmp)
+	{
+		args[j] = strdup(tmp->token);
+		//printf("%s\n",args[j]);
+		tmp = tmp->next;
+		j++;
+	}
+	while(path[i])
+	{
+		strcpy(prog_name, path[i]);
+		ft_strcat(prog_name,"/");
+		ft_strcat(prog_name,head->token);
+	//	printf("%s\n",prog_name);
+		if (!access(prog_name, X_OK))
+		{
+			int pid = fork();
+			if (pid == 0)
+			{
+				execve(prog_name,args,NULL);
+				exit(0);
+			}
+			else
+			{
+				wait(NULL);
+				break;
+			}
+		}
+		i++;
+	}
+	if (!path[i])
+		printf("command not found\n");
+	i = 0;
+
+}
 void check_command(t_token *head)
 {
 	if (!strcmp(head->token, "echo")) //do strcmp ra makinach f libft
@@ -150,12 +199,10 @@ void check_command(t_token *head)
 	else if (!strcmp(head->token, "pwd"))
 		pwd(head);
 	else if (!strcmp(head->token, "cd"))
-	{
-		head = head->next;
 		cd(head);
-	}
 	else
-		printf("invalid command\n");
+		//printf("invalid command\n");
+		executable(head);
 }
 /*
 int main(void)
