@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: waissi <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: sara <sara@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 10:34:32 by waissi            #+#    #+#             */
-/*   Updated: 2024/11/07 02:49:05 by waissi           ###   ########.fr       */
+/*   Updated: 2025/07/22 13:44:41 by sara             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <unistd.h>
 # include <string.h>
 
+int	ft_strcmp(char *s1, const char *s2);
 int		ft_isdigit(int c);
 char	*ft_strtrim(char const *s1, char const *set);
 char	*ft_strrchr(const char *str, char c);
