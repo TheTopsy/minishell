@@ -6,7 +6,7 @@
 /*   By: waissi <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 10:34:32 by waissi            #+#    #+#             */
-/*   Updated: 2024/11/07 02:49:05 by waissi           ###   ########.fr       */
+/*   Updated: 2025/07/31 12:24:31 by adahab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ char	*ft_strnstr(const char *big, const char *little, size_t len);
 size_t	ft_strlen(const char *str);
 int		ft_strlcat(char *src, const char *dst, size_t s);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
-char	*ft_strjoin(char const *s1, char const *s2);
+char	*ft_strjoin(char *s1, char *s2);
 char	*ft_strcat(char *dest, char *src);
 void	ft_strcpy(char *dest, const char *src);
 void	ft_putchar_fd(char c, int fd);

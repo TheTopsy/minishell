@@ -6,7 +6,7 @@
 /*   By: waissi <waissi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/06 15:43:53 by waissi            #+#    #+#             */
-/*   Updated: 2024/11/06 15:43:55 by waissi           ###   ########.fr       */
+/*   Updated: 2025/07/31 12:31:07 by adahab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,10 @@ void	ft_strcpy(char *dest, const char *src)
 		dest[i] = src[i];
 		i++;
 	}
-	dest[i] = '\0';
+	//dest[i] = '\0';
 }
 
-char	*ft_strjoin(char const *s1, char const *s2)
+char	*ft_strjoin(char *s1, char *s2)
 {
 	unsigned char	*str1;
 	unsigned char	*str2;
@@ -55,11 +55,12 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	if ((!s1 && !s2) || (!s1 || !s2))
 		return (NULL);
 	ttl = ft_strlen((char *)str1) + ft_strlen((char *)str2);
-	r = malloc(sizeof(char) * (ttl + 1));
+	r = ft_calloc(ttl + 1, sizeof(char));
 	if (!r)
 		return (NULL);
 	ft_strcpy(r, (char *)str1);
 	ft_strcat(r, (char *)str2);
+	//free(s1);
 	return ((char *)r);
 }
 /*
