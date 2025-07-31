@@ -1,98 +1,115 @@
 #include "../minishell.h"
 
-void echo_file(t_token *head, char *s, int flag)
+int	token_len(t_token *head)
 {
-	t_token *tmp;
-	int fd;
-	while (head)
-        {
-                tmp = check_redirect(head);
-                if (tmp)
-                {
-                        fd = open(tmp->next->token, O_CREAT | O_RDWR | O_TRUNC, 0644);
-                                ft_putstr_fd(s,fd);
-                                head = head->next;
-			if (!flag)
-                        	ft_putstr_fd("\n",fd);
-                }
+	int	i;
+	int	ttl;
+
+	i = 0;
+	ttl = 0;
+	while (head && head->token[0] != '>' && head->token[0] != '<')
+	{
+		while (head->token[i])
+			i++;
 		head = head->next;
+		ttl += i + 1;
 	}
+	return (ttl);
 }
 
-void echo(t_token *head)
+int	executable(t_token *head)
 {
-	t_token *last;
-	int count;
-	char s[99999];
-	t_token *word;
-	int nl_flag;
-	t_token *tmp;
+	int		i;
+	int		j;
+	int		t_count;
+	char	**args;
+	char	**path;
+	t_token	*tmp;
+	char	*prog_name;
+	int		pid;
 
-	nl_flag = check_nl(head);
-	count = count_redirect(head);
-	last = lst_last(head);
-	word = check_redirect(head);
-	if (nl_flag)
-		head = head->next;
+	prog_name = malloc(ft_strlen(head->token) * 1000); // protecc
+	i = 0;
+	j = 0; // not 1 (args[0] is program name)
+	path = ft_split(getenv("PATH"), ':');
 	tmp = head;
-	if (word)
+	t_count = 0;
+	while (tmp)
 	{
-		while (tmp != word)
-		{
-			ft_strcat(s, tmp->token);
-			if (tmp->next != word)
-				ft_strcat(s," ");
-			tmp = tmp->next;
-		}
-		echo_file(head,s,nl_flag);
+		t_count++;
+		tmp = tmp->next;
 	}
-	else
+	args = malloc((t_count + 1) * sizeof(char *));
+	if (!args)
 	{
-   		while (head)
+		free(prog_name);
+		free_array(path);
+		return (-1);
+	}
+	tmp = head;
+	while (tmp)
+	{
+		args[j] = ft_strdup(tmp->token);
+		if (!args)
 		{
-				
-       	 		printf("%s", head->token);
-       	 		if (head->next)
-            			putchar(' ');
-        		head = head->next;
+			free_args(args, j); // free what we allocated so far
+			free(prog_name);
+			free_array(path);
+			return (-1);
 		}
-		if (nl_flag == 0)	
-    			putchar('\n');
-    	}
+		tmp = tmp->next;
+		j++;
+	}
+	args[j] = NULL;
+	while (path[i])
+	{
+		strcpy(prog_name, path[i]); //-42
+		ft_strcat(prog_name, "/");
+		ft_strcat(prog_name, head->token);
+		if (!access(prog_name, X_OK))
+		{
+			pid = fork();
+			if (pid == 0)
+			{
+				execve(prog_name, args, NULL);
+				exit(1); // if fail is 1
+			}
+			else
+			{
+				wait(NULL);
+				break ;
+			}
+		}
+		i++;
+	}
+	if (!path[i])
+		printf("command not found\n");
+	free(prog_name);
+	free_args(args, j);
+	free_array(path);
+	return (0);
 }
-/*
-int main(void)
+
+void	check_command(t_token *head)
 {
-	t_token *tk1 = lst_new("-n");
-	t_token *tk2 = lst_new("bibo");
-	t_token *tk3 = lst_new("a");
-	t_token *tk4 = lst_new("kbir.txt");
-	t_token *tk5 = lst_new("a");
-	t_token *tk6 = lst_new("w.txt");
-	t_token *tk7 = lst_new(">");
-	t_token *tk8 = lst_new("kbiiiiir.txt");
-	t_token *tk9 = lst_new(">");
-	t_token *tk10 = lst_new("mn.txt");
-
-	tk1->next = tk2;
-	tk2->next = tk3;
-	tk2->prev = tk1;
-	tk3->next = tk4;
-	tk3->prev = tk2;
-	tk4->next = tk5;
-	tk4->prev = tk3;
-	tk5->next = tk6;
-	tk5->prev = tk4;
-	tk6->prev = tk5;
-	tk6->next = tk7;
-	tk7->next = tk8;
-	tk7->prev = tk6;
-	tk8->next = tk9;
-	tk8->prev = tk7;
-	tk9->next = tk10;
-	tk9->prev = tk8;
-	tk10->prev = tk9;
-
-	echo(tk1);
+	if (!ft_strcmp(head->token, "echo"))
+	{
+		head = head->next;
+		echo(head);
+	}
+	else if (!ft_strcmp(head->token, "pwd"))
+		pwd(head);
+	else if (!ft_strcmp(head->token, "cd"))
+		cd(head);
+	/*	else if (ft_strcmp(head->token, "env") == 0)
+			env(head);
+		else if (ft_strcmp(head->token, "export") == 0)
+			export(head);
+		else if (ft_strcmp(head->token, "unset") == 0)
+			unset(head);*/
+	else if (ft_strcmp(head->token, "exit") == 0)
+		ft_exit(head);
+	else
+		// printf("invalid command\n");
+		executable(head);
 }
-*/
