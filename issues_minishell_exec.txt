@@ -1,0 +1,75 @@
+------------------------------------------GENERAL-------------------------------------------
+> Minishell SEGFAULTS after giving readline spaces
+	↪ [SOLVED] (there was a problem with freeing) (look here)
+> A lot of memory leaks                                   ↲ 
+> Opened file descriptors remain unclosed
+> Add an exit status for everything
+> NORMINETTE (laystr)
+--------------------------------------------------------------------------------------------
+
+-----------------------------------------ARGUMENTS------------------------------------------
+> Executing commands with absolute path (with or without arguments)
+	↪ [SOLVED]
+--------------------------------------------------------------------------------------------
+
+--------------------------------------------ECHO--------------------------------------------
+> It shouldnt print any occurrence of -n if repeated in the same command
+	↪ (if give "echo -n -n hello" the output is " -n hello$")
+	↪ [SOLVED] (i guess it was always solved)
+> 
+--------------------------------------------------------------------------------------------
+
+---------------------------------------------EXIT-------------------------------------------
+> Handle exit status
+	↪ [SOLVED]
+> Parse properly the argument for exit so it can use it as the exit status
+	↪ [SOLVED]
+--------------------------------------------------------------------------------------------
+
+--------------------------------------------SIGNALS-----------------------------------------
+> SIGINT
+	↪ Doesnt exit the heredoc properly
+	↪ Use the global variable to help for exit status
+> SIGQUIT
+	↪ [SOLVED]
+> CTRL + D (EOT)
+	↪ [SOLVED]
+--------------------------------------------------------------------------------------------
+
+-------------------------------------------ENVIRONMENT---------------------------------------
+> ENV
+	↪ waiting for envp to be parsed
+> EXPORT
+	↪ waiting for envp to be parsed
+> UNSET
+	↪ waiting for envp to be parsed
+--------------------------------------------------------------------------------------------
+
+-------------------------------------------------CD-----------------------------------------
+> Should run only if given 1 or no arguments
+	↪ [SOLVED]
+--------------------------------------------------------------------------------------------
+
+-------------------------------------------------PWD----------------------------------------
+> No problems so far
+	↪ [SOLVED]
+---------------------------------------------REDIRECTIONS------------------------------------
+> Output and Append
+	↪ [SOLVED] (so far?)
+> Heredoc
+	↪ compatibility with signals
+	↪ compatibility with pipes (7ta ndir pipes b3da)
+> Input
+	↪ further tests needed
+--------------------------------------------------------------------------------------------
+
+-----------------------------------------------PIPES----------------------------------------
+> N/A
+--------------------------------------------------------------------------------------------
+
+-----------------------------------------------MISC-----------------------------------------
+> 5ask t7ayd space mn token a w9
+--------------------------------------------------------------------------------------------
+
+
+
