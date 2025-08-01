@@ -185,7 +185,7 @@ int	get_size(char *str)
 				sum += ft_strlen(ev);
 		}
 	}
-	printf("size = %d\n", sum);
+	//printf("size = %d\n", sum);
 	return sum;
 }
 
@@ -398,9 +398,10 @@ int main()
 	head = NULL;
 	while(1)
 	{
-		input = readline("% ");
-		// if (!input)
-		// ft_exit(NULL);
+		start_signals();
+		input = readline(RED"➜  "RESET CYAN"~ "RESET);
+		if (!input)
+		 ft_exit(NULL);
 		add_history(input);
 		if(*input)
 		{
@@ -411,14 +412,15 @@ int main()
 			}
 			head = split_input(input);
 			search_and_expand(&head);
-			while(head)
+			execute_redir(head);
+			/*while(head)
 			{
 				if(head->next)
 					printf("%s -> ", (head)->token);
 				else
 					printf("%s\n", (head)->token);
 				head = head->next;
-			}
+			}*/
 			//break;
 		}
 	}

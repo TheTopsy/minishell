@@ -46,7 +46,7 @@ void	outfile_redir(char *filename);
 void	heredoc_redir(char *delimiter);
 void	infile_redir(char *filename);
 void	append_redir(char *filename);
-void	execute_redir(t_token **head);
+void	execute_redir(t_token *head);
 
 int		token_len(t_token *head);
 void	check_command(t_token *head);
