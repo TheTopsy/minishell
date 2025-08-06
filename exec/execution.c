@@ -95,7 +95,12 @@ int	executable(t_token *head)
 			}
 			else
 			{
-				wait(NULL);
+				signal(SIGINT,SIG_IGN);
+				int status;
+				wait(&status);
+				if (WIFEXITED(status))
+					return 1;
+				//return 1;
 				break ;
 			}
 		}
@@ -148,11 +153,11 @@ void	execute_redir(t_token *head)
 	int		type;
 	int		f_stdin;
 	int		f_stdout;
-	int		has_redir;
+	int had_sig;
 
+	had_sig = 0;
 	f_stdin = -1;
 	f_stdout = -1;
-	has_redir = 0;
 	if (!head )
 		return ;
 	curr = head;
@@ -161,7 +166,6 @@ void	execute_redir(t_token *head)
 		type = redirect_type(curr);
 		if (type > 0)
 		{
-			has_redir = 1;
 			if ((type == 1 || type == 2) && f_stdout == -1) // > or >>
 				f_stdout = dup(STDOUT_FILENO);
 			else if ((type == 3 || type == 4) && f_stdin == -1) // < or <<
@@ -181,7 +185,8 @@ void	execute_redir(t_token *head)
 				return ;
 			}
 			filename = curr->next->token;
-			redirect_occur(curr, filename);
+			if (!redirect_occur(curr, filename))
+				had_sig = 1;
 			remove_redir_tokens(&head, curr);
 			curr = head;
 		}
@@ -190,7 +195,7 @@ void	execute_redir(t_token *head)
 			curr = curr->next;
 		}
 	}
-	if (head && head->token)
+	if (head && head->token && !had_sig)
 		check_command(head);
 	restore_fd(f_stdout, f_stdin);
 }
