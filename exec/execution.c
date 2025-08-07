@@ -186,7 +186,10 @@ void	execute_redir(t_token *head)
 			}
 			filename = curr->next->token;
 			if (!redirect_occur(curr, filename))
+			{
 				had_sig = 1;
+				break;
+			}
 			remove_redir_tokens(&head, curr);
 			curr = head;
 		}
