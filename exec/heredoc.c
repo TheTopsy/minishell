@@ -22,10 +22,7 @@ int	heredoc_redir(char *delimiter)
 		{
 			line = readline("> ");
 			if (!line)
-			{
-				printf("zbi\n");
 				exit(0);
-			}
 			if (ft_strcmp(line, delimiter) == 0)
 			{
 				free(line);
