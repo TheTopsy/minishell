@@ -1,6 +1,6 @@
 #include "../minishell.h"
 
-void	echo(t_token *head)
+void	echo(t_token *head)  //handle -n -n (it should skip all -n after the first one)
 {
 	int	i;
 	int	nl_flag;
@@ -21,11 +21,11 @@ void	echo(t_token *head)
 			printf(" ");
 		head = head->next;
 	}
-	if (nl_flag == 0)
+	if (!nl_flag)
 		printf("\n");
 }
 
-void	pwd(t_token *head) // should accept no arguments
+void	pwd(t_token *head)
 {
 	char *pwd;
 
@@ -44,7 +44,7 @@ void	pwd(t_token *head) // should accept no arguments
 	}
 }
 
-void	cd(t_token *head)
+void	cd(t_token *head) //handle more than 1 argument
 {
 	char	*path;
 
@@ -57,8 +57,13 @@ void	cd(t_token *head)
 			return ;
 		}
 	}
-	else
+	else if (head->next && !head->next->next)
 		path = head->next->token;
+	else
+	{
+		printf("BAYSAL SHELL: cd: too many arguments\n");
+		return;
+	}
 	if (chdir(path))
 		perror("cd");
 }

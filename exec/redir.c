@@ -43,7 +43,8 @@ int	redirect_occur(t_token *redir, char *filename)
 	}
 	else if (type == 4) //<<
 	{
-		heredoc_redir(filename);
+		if (heredoc_redir(filename) == 1337)
+			return 0;
 		return (1);
 	}
 	return (0);

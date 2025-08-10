@@ -636,9 +636,10 @@ int main(int ac, char **av, char **envp)
 	env_head->value[5] = '\0';
 	while(1)
 	{
-		input = readline("% ");
-		// if (!input)
-		// ft_exit(NULL);
+		start_signals();
+		input = readline(RED"➜  "RESET CYAN"~ "RESET);
+		//if (!input)
+			//ft_exit(NULL);
 		add_history(input);
 		if(*input)
 		{
@@ -650,6 +651,7 @@ int main(int ac, char **av, char **envp)
 			head = split_input(input);
 			clean_quotes(head);
 			search_and_expand(&head, env_head);
+			//execute_redir(head);
 			while(head)
 			{
 				if(head->next)
