@@ -21,6 +21,14 @@
 # define CYAN "\033[1;36m"
 # define RESET "\033[0m"
 
+typedef struct s_env
+{
+	char	*key;
+	char	*value;
+	struct s_env	*next;
+}	t_env;
+
+
 typedef struct s_token
 {
 	char	*token;//the actual text "echo" "<" ..

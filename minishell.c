@@ -9,7 +9,6 @@ t_token	*create_token(char *token)
 		return (NULL);
 	node1->token = token;
 	node1->next = NULL;
-	//printf("$%s\n", node1->token);
 	return node1;
 }
 
@@ -38,7 +37,41 @@ void	insert_token(t_token **lst, t_token *new)
 		*lst = new;
 }
 
-// WHEN EVER \" OR \' OR SPACE OR $ IS ENCOUNTERED INCREMENT THE COUNT
+t_env *create_env(char *key, char *val)
+{
+        t_env *node1;
+
+        node1 = (t_env *)malloc(sizeof(t_env));
+        if (!node1)
+                return (NULL);
+        node1->value = val;
+        node1->key = key;
+        node1->next = NULL;
+        return node1;
+}
+
+t_env *ft_envlast(t_env *lst)
+{
+        if (!lst)
+                return (NULL);
+        while (lst->next)
+                lst = lst->next;
+        return (lst);
+}
+
+void    insert_env(t_env **lst, t_env *new)
+{
+        t_env *last;
+
+        if (!lst || !new)
+                return ;
+        last = ft_envlast(*lst);
+        if (*lst)
+                last->next = new;
+        else
+                *lst = new;
+}
+
 
 int	count_input(char *input)
 {
@@ -128,7 +161,23 @@ void delete_token(t_token **head, t_token *token)
 	}
 }
 
-char *get_ev_name(char *str, int *pos)
+char *my_getenv(char *key, t_env *env_head)
+{
+	int i;
+
+	while(env_head)
+	{
+		i = 0;
+		while(key[i] && env_head->key[i] && key[i] == env_head->key[i])
+			i++;
+		if(i == (int)ft_strlen(key))
+			return env_head->value;
+		env_head = env_head->next;
+	}
+	return NULL;
+}
+
+char *get_ev_name(char *str, int *pos, t_env *env_head)
 {
 	char *ev;
 	char *tmp;
@@ -141,18 +190,17 @@ char *get_ev_name(char *str, int *pos)
 	if(str[i] == '$')
 	{
 		i++;
-		/*if(!str[i] || str[i] == ' ' || str[i] == '\"' || str[i] == '\'')
+		if(!str[i] || str[i] == ' ' || str[i] == '\"' || str[i] == '\'')
 		{
 			*pos = i;
 			tmp[0] = '$';
 			tmp[1] = '\0';
 			return tmp;
-		}*/
+		}
 		while(ft_isalnum(str[i]) || str[i] == '_')
 			tmp[j++] = str[i++];
 		tmp[j] = '\0';
-		ev = getenv(tmp);
-		//free(tmp);
+		ev = my_getenv(tmp, env_head);
 		if(ev)
 		{
 			*pos = i;
@@ -163,7 +211,7 @@ char *get_ev_name(char *str, int *pos)
 	return NULL;
 }
 
-int	get_size(char *str)
+int	get_size(char *str, t_env *env_head)
 {
 	int i;
 	int sum;
@@ -180,12 +228,12 @@ int	get_size(char *str)
 		}
 		if(str[i] == '$')
 		{
-			ev = get_ev_name(str, &i);
+			ev = get_ev_name(str, &i, env_head);
 			if(ev)
 				sum += ft_strlen(ev);
 		}
 	}
-	printf("size = %d\n", sum);
+	//printf("size = %d\n", sum);
 	return sum;
 }
 
@@ -199,12 +247,10 @@ void my_strjoin(char *res, char *s2)
 	j = ft_strlen(res);
 	while(s2[i])
 		res[j++] = s2[i++];
-	//return res;
 }
 
-char *expand(char *str)
+char *expand(char *str, t_env *env_head, int *expandable)
 {
-	//printf(" str = %s\n",str);
 	char *res = NULL;
 	char *ev;
 	int i;
@@ -212,17 +258,15 @@ char *expand(char *str)
 
 	i = 0;
 	j = 0;
-	res = ft_calloc(1 ,get_size(str));
+	res = ft_calloc(1 ,get_size(str, env_head));
 	while(str[i])
 	{
 		while(str[i] && str[i] != '$')
-		{
-			res[j] = str[i++];
-			j++;
-		}
+			res[j++] = str[i++];
 		if(str[i] == '$')
 		{
-			ev = get_ev_name(str, &i);
+			*expandable = 1;
+			ev = get_ev_name(str, &i, env_head);
 			if(ev)
 			{
 				my_strjoin(res, ev);
@@ -234,19 +278,114 @@ char *expand(char *str)
 	return (res);
 }
 
-void search_and_expand(t_token **head)
+void split_expansion(t_token **head, t_token *target)
+{
+        int i;
+        int j;
+        char *str;
+        t_token *first;
+	t_token *last;
+
+        i = 0;
+        j = 0;
+        str = ft_calloc(1, ft_strlen(target->token));
+	first = NULL;
+        while(1)
+        {
+                if(target->token[i] == ' ' || !target->token[i])
+                {
+                        str[j] = '\0';
+                        j = 0;
+			insert_token(&first, create_token(str));
+			i++;
+			str = ft_calloc(1, ft_strlen(target->token));
+                }
+		if(!target->token[i])
+			break;
+                str[j++] = target->token[i++];
+        }
+	target->prev->next = first;
+	last = ft_lstlast(first);
+	last->next = target->next;
+	free(target);
+}
+
+void search_and_expand(t_token **head, t_env *env_head)
 {
 	t_token *tmp;
-
+	int expandable;
+       	
+	expandable = 0;
 	tmp = *head;
 	while(tmp)
 	{
-		tmp->token = expand(tmp->token);
+		if(tmp->token[0] != '\'')
+		{
+			tmp->token = expand(tmp->token, env_head, &expandable);
+			if(expandable && tmp->token[0] != '\"')
+				split_expansion(head, tmp);
+			expandable = 0;
+		}
 		tmp = tmp->next;
 	}
 }
 
+char *extract_token(char *str, int start, int end)
+{
+	char *res;
+	int i;
+
+	i = 0;
+	res = ft_calloc(ft_strlen(str), sizeof(char));
+	while(start < end)
+	{
+		if((str[start] == '\'' && str[start + 1] == '\'') || (str[start] == '\"' && str[start + 1] == '\"'))
+			start += 2;
+		else
+			res[i++] = str[start++];
+	}
+	//printf("\n");
+	res[i] = '\0';
+	//printf("%s\n", res);
+	return res;
+}
+
 t_token *split_input(char *input)
+{
+	t_token *head = NULL;
+	int dbl;
+	int sgl;
+	int i;
+	int start;
+
+	dbl = 0;
+	sgl = 0;
+	i = 0;
+	start = 0;
+	while(input[i])
+	{
+		if(input[i] == ' ' && !dbl && !sgl)
+		{
+                        insert_token(&head, create_token(extract_token(input, start, i)));
+                        while(input[i] && input[i] == ' ')
+                                i++;
+                        start = i;
+                }
+		if(input[i] && input[i] == '\'' && !sgl)
+			sgl = 1;
+		else if(input[i] && input[i] == '\'' && sgl)
+			sgl = 0;
+		if(input[i] && input[i] == '\"' && !dbl)
+			dbl = 1;
+		else if(input[i] && input[i] == '\"' && dbl)
+                        dbl = 0;
+		i++;
+	}
+	insert_token(&head, create_token(extract_token(input, start, i)));
+	return head;
+}
+
+t_token *spli_input(char *input)
 {
 	int i;
 	int j;
@@ -297,7 +436,7 @@ t_token *split_input(char *input)
                                         j++;
                                 }
                         }
-			if(input[i] == '\"')
+			if(input[i] == '\"' && input[i - 1] == ' ')
 			{
 				tmp[j++] = input[i++];
 				if(input[i] == '\"')
@@ -390,12 +529,111 @@ int unclosed_quotes(char *input)
 	return (1);
 }
 
-int main()
+char *get_key(char *env)
+{
+	int i;
+	char *key;
+
+	i = 0;
+	key = ft_calloc(ft_strlen(env), sizeof(char));
+	while(env[i] && env[i] != '=')
+	{
+		key[i] = env[i];
+		i++;
+	}
+	key[i] = '\0';
+	return key;
+}
+
+char *get_val(char *env)
+{
+	int i;
+	int j;
+	char *val;
+
+	i = 0;
+	j = 0;
+	val = ft_calloc(ft_strlen(env), sizeof(char));
+	while(env[i] && env[i] != '=')
+		i++;
+	i++;
+	while(env[i])
+		val[j++] = env[i++];
+	val[j] = '\0';
+	return val;
+}
+
+t_env *list_env(char **envp)
+{
+	int i;
+	t_env *env_head;
+
+	env_head = NULL;
+	i = 0;
+	while(envp[i])
+	{
+		insert_env(&env_head, create_env(get_key(envp[i]), get_val(envp[i])));
+		i++;
+	}
+	return env_head;
+}
+//handle '"$a"'
+void	clean_quotes(t_token *head)
+{
+	char *str;
+	int i;
+	int j;
+
+	i = 0;
+	j = 0;
+	while(head)
+	{
+		str = ft_calloc(1, ft_strlen(head->token));
+		while(head->token[i])
+		{
+			if(head->token[i] == '\"')
+			{
+				i++;
+				while(head->token[i] && head->token[i] != '\"')
+					str[j++] = head->token[i++];
+				i++;
+			}
+			if(head->token[i] == '\'')
+                        {
+                                i++;
+                                while(head->token[i] && head->token[i] != '\'')
+                                        str[j++] = head->token[i++];
+                                i++;
+                        }
+			while(head->token[i] && head->token[i] != '\"' && head->token[i] != '\'')
+				str[j++] = head->token[i++];
+		}
+		str[j] = '\0';
+		free(head->token);
+		head->token = str;
+		head = head->next;
+		j = 0;
+		i = 0;
+	}
+}
+
+int main(int ac, char **av, char **envp)
 {
 	char *input;
 	t_token *head;
+	t_env *env_head;
 
+	env_head = NULL;
 	head = NULL;
+	env_head = list_env(envp);
+	env_head->key[0] = 'a';
+	env_head->key[1] = '\0';
+	env_head->value[0] = 'a';
+	env_head->value[1] = 'b';
+	env_head->value[2] = ' ';
+	env_head->value[3] = 'c';
+	env_head->value[4] = 'd';
+	env_head->value[5] = '\0';
 	while(1)
 	{
 		input = readline("% ");
@@ -410,7 +648,8 @@ int main()
 				return 0;
 			}
 			head = split_input(input);
-			search_and_expand(&head);
+			clean_quotes(head);
+			search_and_expand(&head, env_head);
 			while(head)
 			{
 				if(head->next)
