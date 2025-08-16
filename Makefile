@@ -7,7 +7,7 @@ INCLUDES = -Iinclude -Ilibft
 LIBFT_DIR = ./exec/libft
 LIBFT = ./exec/libft/libft.a
 
-FILES = exec/built.c exec/exit.c exec/utils.c exec/checks.c exec/free.c \
+FILES = cmd.c exec/built.c exec/exit.c exec/utils.c exec/checks.c exec/free.c \
 		exec/utils_lst.c exec/execution.c exec/redir.c exec/heredoc.c\
 		exec/signal.c \
 		minishell.c \

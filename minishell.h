@@ -28,6 +28,11 @@ typedef struct s_env
 	struct s_env	*next;
 }	t_env;
 
+typedef struct s_cmd
+{
+	char **cmd;
+	struct s_cmd *next;
+}	t_cmd;
 
 typedef struct s_token
 {
@@ -73,5 +78,10 @@ void	signal_handler(int sig);
 void	free_array(char **array);
 char	*ft_readline(void);
 void	free_args(char **args, int size);
+t_cmd *fill_commands(t_cmd *head, char *input); 
+int has_pipe(char *input);
+int count_pipe(char *input);
+int lst_len_cmd(t_cmd *head);
+int lst_len(t_token *head);
 
 #endif

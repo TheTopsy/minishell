@@ -280,6 +280,7 @@ char *expand(char *str, t_env *env_head, int *expandable)
 
 void split_expansion(t_token **head, t_token *target)
 {
+	(void)head;
         int i;
         int j;
         char *str;
@@ -619,9 +620,13 @@ void	clean_quotes(t_token *head)
 
 int main(int ac, char **av, char **envp)
 {
+	(void)av;
+	if (ac > 1)
+		return 1;
 	char *input;
 	t_token *head;
 	t_env *env_head;
+	t_cmd *head2 = NULL;
 
 	env_head = NULL;
 	head = NULL;
@@ -638,8 +643,24 @@ int main(int ac, char **av, char **envp)
 	{
 		start_signals();
 		input = readline(RED"➜  "RESET CYAN"~ "RESET);
-		//if (!input)
-			//ft_exit(NULL);
+		if (!input)
+			ft_exit(NULL);
+		if (has_pipe(input))
+		{
+			head2 = fill_commands(head2, input);
+			if (lst_len_cmd(head2) != count_pipe(input) + 1)
+			{
+				if (head2)
+				{
+					printf("BAYSAL SHELL: pipe syntax error\n");
+					free_array(head2->cmd);
+					free(head2);
+					head2 = NULL;
+				}
+				head2 = ft_calloc(1, sizeof(t_cmd));
+				head2->next = NULL;
+			}
+		}
 		add_history(input);
 		if(*input)
 		{
@@ -652,6 +673,7 @@ int main(int ac, char **av, char **envp)
 			clean_quotes(head);
 			search_and_expand(&head, env_head);
 			//execute_redir(head);
+			/*
 			while(head)
 			{
 				if(head->next)
@@ -659,7 +681,7 @@ int main(int ac, char **av, char **envp)
 				else
 					printf("%s\n", (head)->token);
 				head = head->next;
-			}
+			}*/
 			//break;
 		}
 	}
